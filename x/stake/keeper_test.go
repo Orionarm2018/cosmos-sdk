@@ -25,12 +25,12 @@ var (
 )
 
 func TestSetValidator(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	pool := keeper.GetPool(ctx)
 
 	// test how the validator is set from a purely unbonbed pool
 	validator := NewValidator(addrVals[0], pks[0], Description{})
-	validator, pool, _ = validator.addTokensFromDel(pool, 10)
+	validator, pool, _ = validator.addTokensFromDel(pool, sdk.NewInt(10))
 	require.Equal(t, sdk.Unbonded, validator.Status())
 	assert.True(sdk.RatEq(t, sdk.NewRat(10), validator.PoolShares.Unbonded()))
 	assert.True(sdk.RatEq(t, sdk.NewRat(10), validator.DelegatorShares))
@@ -64,7 +64,7 @@ func TestSetValidator(t *testing.T) {
 
 // This function tests updateValidator, GetValidator, GetValidatorsBonded, removeValidator
 func TestValidatorBasics(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	pool := keeper.GetPool(ctx)
 
 	//construct the validators
@@ -73,7 +73,7 @@ func TestValidatorBasics(t *testing.T) {
 	for i, amt := range amts {
 		validators[i] = NewValidator(addrVals[i], pks[i], Description{})
 		validators[i].PoolShares = NewUnbondedShares(sdk.ZeroRat())
-		validators[i].addTokensFromDel(pool, amt)
+		validators[i].addTokensFromDel(pool, sdk.NewInt(amt))
 	}
 
 	// check the empty keeper first
@@ -128,7 +128,7 @@ func TestValidatorBasics(t *testing.T) {
 
 // test how the validators are sorted, tests GetValidatorsByPower
 func GetValidatorSortingUnmixed(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	// initialize some validators into the state
 	amts := []int64{0, 100, 1, 400, 200}
@@ -204,7 +204,7 @@ func GetValidatorSortingUnmixed(t *testing.T) {
 }
 
 func GetValidatorSortingMixed(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	// now 2 max resValidators
 	params := keeper.GetParams(ctx)
@@ -261,7 +261,7 @@ func GetValidatorSortingMixed(t *testing.T) {
 
 // TODO seperate out into multiple tests
 func TestGetValidatorsEdgeCases(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	var found bool
 
 	// now 2 max resValidators
@@ -332,7 +332,7 @@ func TestGetValidatorsEdgeCases(t *testing.T) {
 }
 
 func TestValidatorBondHeight(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	// now 2 max resValidators
 	params := keeper.GetParams(ctx)
@@ -373,7 +373,7 @@ func TestValidatorBondHeight(t *testing.T) {
 }
 
 func TestFullValidatorSetPowerChange(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	params := keeper.GetParams(ctx)
 	max := 2
 	params.MaxValidators = uint16(2)
@@ -414,7 +414,7 @@ func TestFullValidatorSetPowerChange(t *testing.T) {
 
 // clear the tracked changes to the gotValidator set
 func TestClearTendermintUpdates(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{100, 400, 200}
 	validators := make([]Validator, len(amts))
@@ -433,7 +433,7 @@ func TestClearTendermintUpdates(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesAllNone(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{10, 20}
 	var validators [2]Validator
@@ -471,7 +471,7 @@ func TestGetTendermintUpdatesAllNone(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesIdentical(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{10, 20}
 	var validators [2]Validator
@@ -493,7 +493,7 @@ func TestGetTendermintUpdatesIdentical(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesSingleValueChange(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{10, 20}
 	var validators [2]Validator
@@ -519,7 +519,7 @@ func TestGetTendermintUpdatesSingleValueChange(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesMultipleValueChange(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{10, 20}
 	var validators [2]Validator
@@ -547,7 +547,7 @@ func TestGetTendermintUpdatesMultipleValueChange(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesInserted(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	amts := []int64{10, 20, 5, 15, 25}
 	var validators [5]Validator
@@ -586,7 +586,7 @@ func TestGetTendermintUpdatesInserted(t *testing.T) {
 }
 
 func TestGetTendermintUpdatesNotValidatorCliff(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	params := DefaultParams()
 	params.MaxValidators = 2
 	keeper.setParams(ctx, params)
@@ -625,7 +625,7 @@ func TestGetTendermintUpdatesNotValidatorCliff(t *testing.T) {
 
 // tests GetDelegation, GetDelegations, SetDelegation, removeDelegation, GetBonds
 func TestBond(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 
 	//construct the validators
 	amts := []int64{9, 8, 7}
@@ -721,7 +721,7 @@ func TestBond(t *testing.T) {
 }
 
 func TestParams(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	expParams := DefaultParams()
 
 	//check that the empty keeper loads the default
@@ -736,7 +736,7 @@ func TestParams(t *testing.T) {
 }
 
 func TestPool(t *testing.T) {
-	ctx, _, keeper := createTestInput(t, false, 0)
+	ctx, _, keeper := createTestInput(t, false, sdk.NewInt(0))
 	expPool := InitialPool()
 
 	//check that the empty keeper loads the default
@@ -744,7 +744,7 @@ func TestPool(t *testing.T) {
 	assert.True(t, expPool.equal(resPool))
 
 	//modify a params, save, and retrieve
-	expPool.BondedTokens = 777
+	expPool.BondedTokens = sdk.NewInt(777)
 	keeper.setPool(ctx, expPool)
 	resPool = keeper.GetPool(ctx)
 	assert.True(t, expPool.equal(resPool))

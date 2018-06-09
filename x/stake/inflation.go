@@ -21,8 +21,8 @@ func (k Keeper) processProvisions(ctx sdk.Context) Pool {
 	// more bonded tokens are added proportionally to all validators the only term
 	// which needs to be updated is the `BondedPool`. So for each previsions cycle:
 
-	provisions := pool.Inflation.Mul(sdk.NewRat(pool.TokenSupply())).Quo(hrsPerYrRat).Evaluate()
-	pool.BondedTokens += provisions
+	provisions := sdk.NewIntFromBigInt(pool.Inflation.Mul(sdk.NewRatFromInt(pool.TokenSupply())).Quo(hrsPerYrRat).EvaluateBig())
+	pool.BondedTokens = pool.BondedTokens.Add(provisions)
 	return pool
 }
 
