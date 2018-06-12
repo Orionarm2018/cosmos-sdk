@@ -34,8 +34,7 @@ func newTestMsgDelegate(delegatorAddr, validatorAddr sdk.Address, amt int64) Msg
 //______________________________________________________________________
 
 func TestValidatorByPowerIndex(t *testing.T) {
-	validatorAddr, validatorAddr2 := addrs[0], addrs[1]
-	//validatorAddr := addrs[0]
+	validatorAddr, validatorAddr2, validatorAddr3 := addrs[0], addrs[1], addrs[2]
 
 	initBond := int64(1000)
 	initBondStr := "1000"
@@ -65,17 +64,26 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	msgCreateValidator = newTestMsgCreateValidator(validatorAddr2, pks[1], int64(500))
 	got = handleMsgCreateValidator(ctx, msgCreateValidator, keeper)
 	assert.True(t, got.IsOK(), "expected create-validator to be ok, got %v", got)
-
-	validator, found = keeper.GetValidator(ctx, validatorAddr2)
-	require.True(t, found)
-
+	keeper.Slash(ctx, pks[1], 0, sdk.NewRat(1, 2))
 	keeper.Revoke(ctx, pks[1])
-	validator, found = keeper.GetValidator(ctx, validatorAddr2)
+	validator2, found := keeper.GetValidator(ctx, validatorAddr2)
 	require.True(t, found)
+	validator2 = keeper.updateValidator(ctx, validator2)
+	require.Equal(t, sdk.Unbonded, validator2.PoolShares.Status)          // ensure is unbonded
+	require.Equal(t, int64(250), validator2.PoolShares.Amount.Evaluate()) // ensure is unbonded
 
-	// slash and revoke the validator
-	keeper.Slash(ctx, validator.PubKey, 0, sdk.NewRat(1, 3))
-	keeper.Revoke(ctx, validator.PubKey)
+	// create a third validator keep it bonded
+	msgCreateValidator = newTestMsgCreateValidator(validatorAddr3, pks[2], int64(300))
+	got = handleMsgCreateValidator(ctx, msgCreateValidator, keeper)
+	assert.True(t, got.IsOK(), "expected create-validator to be ok, got %v", got)
+
+	// slash and revoke the first validator
+	keeper.Slash(ctx, pks[0], 0, sdk.NewRat(1, 2))
+	keeper.Revoke(ctx, pks[0])
+	validator, found = keeper.GetValidator(ctx, validatorAddr)
+	require.True(t, found)
+	require.Equal(t, sdk.Unbonded, validator.PoolShares.Status)          // ensure is unbonded
+	require.Equal(t, int64(500), validator.PoolShares.Amount.Evaluate()) // ensure is unbonded
 
 	// the old power record should have been deleted as the power changed
 	assert.False(t, keeper.validatorByPowerIndexExists(ctx, power))
