@@ -54,7 +54,7 @@
 
 [[constraint]]
   name = "github.com/tendermint/abci"
-  branch = "dev/ephemeral_ports"
+  branch = "develop"
 
 [[constraint]]
   name = "github.com/tendermint/go-crypto"
@@ -70,7 +70,7 @@
 
 [[constraint]]
   name = "github.com/tendermint/tendermint"
-  branch = "dev/ephemeral_port"
+  branch = "dev/ephemeral_port2"
 
 [[override]]
   name = "github.com/tendermint/tmlibs"
