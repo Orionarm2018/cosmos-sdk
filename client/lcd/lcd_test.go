@@ -410,7 +410,7 @@ func startTMAndLCD() (*nm.Node, net.Listener, error) {
 		return nil, nil, err
 	}
 	viper.Set(cli.HomeFlag, dir)
-	viper.Set(client.FlagGas, 200000)
+	// viper.Set(client.FlagGas, 200000) // don't set this as it is not set in production neither
 	kb, err := keys.GetKeyBase() // dbm.NewMemDB()) // :(
 	if err != nil {
 		return nil, nil, err
@@ -582,7 +582,7 @@ func doSend(t *testing.T, port string) (receiveAddr string, resultTx ctypes.Resu
 
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
-	gas := 500000 // fixed gas price
+	gas := 500000 // fixed gas
 
 	// send
 	jsonStr := []byte(fmt.Sprintf(`{ "name":"%s", "password":"%s", "sequence":%d, "gas":%d, "amount":[{ "denom": "%s", "amount": 1 }] }`, name, password, sequence, gas, coinDenom))
@@ -605,9 +605,10 @@ func doIBCTransfer(t *testing.T, port, seed string) (resultTx ctypes.ResultBroad
 	// get the account to get the sequence
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
+	gas := 500000
 
 	// send
-	jsonStr := []byte(fmt.Sprintf(`{ "name":"%s", "password":"%s", "sequence":%d, "amount":[{ "denom": "%s", "amount": 1 }] }`, name, password, sequence, coinDenom))
+	jsonStr := []byte(fmt.Sprintf(`{ "name":"%s", "password":"%s", "sequence":%d, "gas":%d, "amount":[{ "denom": "%s", "amount": 1 }] }`, name, password, sequence, gas, coinDenom))
 	res, body := request(t, port, "POST", "/ibc/testchain/"+receiveAddr+"/send", jsonStr)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 
@@ -631,7 +632,7 @@ func doBond(t *testing.T, port, seed string) (resultTx ctypes.ResultBroadcastTxC
 	// get the account to get the sequence
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
-	gas := 500000 // fixed gace
+	gas := 500000 // fixed gas
 
 	// send
 	jsonStr := []byte(fmt.Sprintf(`{
