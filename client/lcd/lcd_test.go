@@ -243,7 +243,7 @@ func TestCoinSend(t *testing.T) {
 	initialBalance := acc.GetCoins()
 
 	// create TX
-	receiveAddr, resultTx := doSend(t, port)
+	receiveAddr, resultTx := doSend(t, port) // fixed gas price
 	tests.WaitForHeight(resultTx.Height+1, port)
 
 	// check if tx was commited
@@ -582,9 +582,10 @@ func doSend(t *testing.T, port string) (receiveAddr string, resultTx ctypes.Resu
 
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
+	gas := 500000 // fixed gas price
 
 	// send
-	jsonStr := []byte(fmt.Sprintf(`{ "name":"%s", "password":"%s", "sequence":%d, "amount":[{ "denom": "%s", "amount": 1 }] }`, name, password, sequence, coinDenom))
+	jsonStr := []byte(fmt.Sprintf(`{ "name":"%s", "password":"%s", "sequence":%d, "gas":%d, "amount":[{ "denom": "%s", "amount": 1 }] }`, name, password, sequence, gas, coinDenom))
 	res, body := request(t, port, "POST", "/accounts/"+receiveAddr+"/send", jsonStr)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 
@@ -630,12 +631,14 @@ func doBond(t *testing.T, port, seed string) (resultTx ctypes.ResultBroadcastTxC
 	// get the account to get the sequence
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
+	gas := 500000 // fixed gace
 
 	// send
 	jsonStr := []byte(fmt.Sprintf(`{
 		"name": "%s",
 		"password": "%s",
 		"sequence": %d,
+		"gas": %d,
 		"delegate": [
 			{
 				"delegator_addr": "%s",
@@ -644,7 +647,7 @@ func doBond(t *testing.T, port, seed string) (resultTx ctypes.ResultBroadcastTxC
 			}
 		],
 		"unbond": []
-	}`, name, password, sequence, sendAddr, validatorAddr1, coinDenom))
+	}`, name, password, sequence, gas, sendAddr, validatorAddr1, coinDenom))
 	res, body := request(t, port, "POST", "/stake/delegations", jsonStr)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 
@@ -659,12 +662,14 @@ func doUnbond(t *testing.T, port, seed string) (resultTx ctypes.ResultBroadcastT
 	// get the account to get the sequence
 	acc := getAccount(t, sendAddr)
 	sequence := acc.GetSequence()
+	gas := 500000 // fixed gas
 
 	// send
 	jsonStr := []byte(fmt.Sprintf(`{
 		"name": "%s",
 		"password": "%s",
 		"sequence": %d,
+		"gas": %d,
 		"bond": [],
 		"unbond": [
 			{
@@ -673,7 +678,7 @@ func doUnbond(t *testing.T, port, seed string) (resultTx ctypes.ResultBroadcastT
 				"shares": "1"
 			}
 		]
-	}`, name, password, sequence, sendAddr, validatorAddr1))
+	}`, name, password, sequence, gas, sendAddr, validatorAddr1))
 	res, body := request(t, port, "POST", "/stake/delegations", jsonStr)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 
