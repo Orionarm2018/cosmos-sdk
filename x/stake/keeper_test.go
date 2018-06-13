@@ -1,6 +1,7 @@
 package stake
 
 import (
+	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,7 +29,7 @@ func TestUpdateValidatorByPowerIndex(t *testing.T) {
 	ctx, _, keeper := createTestInput(t, false, 0)
 	pool := keeper.GetPool(ctx)
 
-	// create a dynamic pool
+	// create a random pool
 	pool.BondedTokens = 1234
 	pool.BondedShares = sdk.NewRat(124)
 	pool.UnbondingTokens = 13934
@@ -39,22 +40,23 @@ func TestUpdateValidatorByPowerIndex(t *testing.T) {
 
 	// add a validator
 	validator := NewValidator(addrVals[0], pks[0], Description{})
-	validator, pool, _ = validator.addTokensFromDel(pool, 100)
+	validator, pool, delSharesCreated := validator.addTokensFromDel(pool, 100)
+	fmt.Printf("debug delSharesCreated: %v\n", delSharesCreated)
 	require.Equal(t, sdk.Unbonded, validator.Status())
 	assert.Equal(t, int64(100), validator.PoolShares.Tokens(pool).Evaluate())
 	keeper.setPool(ctx, pool)
 	keeper.updateValidator(ctx, validator)
 	validator, found := keeper.GetValidator(ctx, addrVals[0])
 	require.True(t, found)
-	assert.Equal(t, int64(100), validator.PoolShares.Tokens(pool).Evaluate())
+	assert.Equal(t, int64(100), validator.PoolShares.Tokens(pool).Evaluate(), "\nvalidator %v\npool %v", validator, pool)
 
 	pool = keeper.GetPool(ctx)
 	power := GetValidatorsByPowerKey(validator, pool)
 	assert.True(t, keeper.validatorByPowerIndexExists(ctx, power))
 
-	validator, pool, _ = validator.removePoolShares(pool, sdk.NewRat(20))
-	//validator, pool, burned := validator.removePoolShares(pool, sdk.NewRat(20))
-	//assert.Equal(t, int64(20), burned)
+	// burn half the delegator shares
+	validator, pool, burned := validator.removeDelShares(pool, delSharesCreated.Quo(sdk.NewRat(2)))
+	assert.Equal(t, int64(50), burned)
 	keeper.setPool(ctx, pool)              // update the pool
 	keeper.updateValidator(ctx, validator) // update the validator, possibly kicking it out
 	assert.False(t, keeper.validatorByPowerIndexExists(ctx, power))

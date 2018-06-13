@@ -60,6 +60,8 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	power := GetValidatorsByPowerKey(validator, pool)
 	require.True(t, keeper.validatorByPowerIndexExists(ctx, power))
 
+	ctx = ctx.WithBlockHeight(1)
+
 	// create a second validator and revoke it to put it in the unbonded pool
 	msgCreateValidator = newTestMsgCreateValidator(validatorAddr2, pks[1], int64(500))
 	got = handleMsgCreateValidator(ctx, msgCreateValidator, keeper)
@@ -72,10 +74,14 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	require.Equal(t, sdk.Unbonded, validator2.PoolShares.Status)          // ensure is unbonded
 	require.Equal(t, int64(250), validator2.PoolShares.Amount.Evaluate()) // ensure is unbonded
 
+	ctx = ctx.WithBlockHeight(2)
+
 	// create a third validator keep it bonded
 	msgCreateValidator = newTestMsgCreateValidator(validatorAddr3, pks[2], int64(300))
 	got = handleMsgCreateValidator(ctx, msgCreateValidator, keeper)
 	assert.True(t, got.IsOK(), "expected create-validator to be ok, got %v", got)
+
+	ctx = ctx.WithBlockHeight(3)
 
 	// slash and revoke the first validator
 	keeper.Slash(ctx, pks[0], 0, sdk.NewRat(1, 2))
@@ -94,6 +100,8 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	pool = keeper.GetPool(ctx)
 	power = GetValidatorsByPowerKey(validator, pool)
 	require.True(t, keeper.validatorByPowerIndexExists(ctx, power))
+
+	ctx = ctx.WithBlockHeight(4)
 
 	// unbond self-delegation
 	msgUnbond := NewMsgUnbond(validatorAddr, validatorAddr, "MAX")
